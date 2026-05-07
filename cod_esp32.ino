@@ -175,5 +175,4 @@ void loop() {
     Serial.println(adcV, 3);
   }
 
-  delay(20);
 }
