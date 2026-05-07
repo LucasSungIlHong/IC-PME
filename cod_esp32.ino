@@ -54,7 +54,7 @@ float leitura_carga(HX711& sensor) {
     long reading = sensor.get_units(10);
 
     /* 🔥 ALTERAÇÃO MÍNIMA: usa fator variável */
-    valor = reading / calibration_factor;
+    valor = (-1.0) * reading / calibration_factor;
   }
   return valor;
 }
@@ -134,6 +134,7 @@ void setup() {
 
         Serial.print("Nova calibração: ");
         Serial.println(calibration_factor);
+        carga.tare();
 
         server.send(200, "text/plain", "OK");
       } else {
