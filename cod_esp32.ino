@@ -155,7 +155,7 @@ void setup() {
   server.begin();
 }
 
-/*********************** LOOP *******************/
+/*********************** LOOP PRINCIPAL *******************/
 void loop() {
   server.handleClient();
 
