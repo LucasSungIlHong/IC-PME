@@ -190,7 +190,7 @@ void setup() {
   webSocket.onEvent(webSocketEvent);
 }
 
-/*********************** LOOP *******************/
+/*********************** LOOP PRINCIPAL *******************/
 void loop() {
   server.handleClient();
   webSocket.loop();
