@@ -5,6 +5,7 @@
 ***************************************************/
 #include <WiFi.h>
 #include <WebServer.h>
+#include <WebSocketsServer.h>
 #include <LittleFS.h>
 #include "HX711.h"
 
@@ -18,7 +19,7 @@ HX711 carga;
 float torque = 0.0;
 float valor = 0.0;
 unsigned long lastReadingMillis = 0;
-const long interval = 200;
+const long interval = 500;
 
 /* === 🔥 NOVO: CALIBRAÇÃO GLOBAL === */
 float calibration_factor = 10000.0;
@@ -30,6 +31,7 @@ const String CALIB_PASSWORD = "1234";
 const char* ssid = "ESP32-Torque";
 const char* password = "SenhaSegura";
 WebServer server(80);
+WebSocketsServer webSocket = WebSocketsServer(81);
 
 /* === FILTRO TORQUE === */
 const int numReadings = 50;
@@ -51,9 +53,7 @@ void filter_reading(float new_reading) {
 /**************** HX711 READING *****************/
 float leitura_carga(HX711& sensor) {
   if (sensor.is_ready()) {
-    long reading = sensor.get_units(10);
-
-    /* 🔥 ALTERAÇÃO MÍNIMA: usa fator variável */
+    long reading = sensor.get_units(2);
     valor = (-1.0) * reading / calibration_factor;
   }
   return valor;
@@ -69,6 +69,38 @@ float readAdcVoltage() {
   float raw = (float)sum / 20.0;
   float voltage = (raw / 4095.0) * 3.3;
   return voltage;
+}
+
+/**************** WEBSOCKET EVENT *****************/
+void webSocketEvent(uint8_t num,
+                    WStype_t type,
+                    uint8_t * payload,
+                    size_t length) {
+
+  switch(type) {
+
+    case WStype_DISCONNECTED:
+      Serial.printf("[WS] Cliente %u desconectado\n", num);
+      break;
+
+    case WStype_CONNECTED: {
+      IPAddress ip = webSocket.remoteIP(num);
+
+      Serial.printf(
+        "[WS] Cliente %u conectado: %d.%d.%d.%d\n",
+        num,
+        ip[0], ip[1], ip[2], ip[3]
+      );
+      break;
+    }
+
+    case WStype_TEXT:
+      Serial.printf("[WS] Recebido: %s\n", payload);
+      break;
+
+    default:
+      break;
+  }
 }
 
 /********************** SETUP *******************/
@@ -153,27 +185,40 @@ void setup() {
   });
 
   server.begin();
+
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
 }
 
 /*********************** LOOP *******************/
 void loop() {
   server.handleClient();
+  webSocket.loop();
+  
 
   if (millis() - lastReadingMillis >= interval) {
     lastReadingMillis = millis();
 
     float med = leitura_carga(carga);
-    filter_reading(med);
     torque = med;
 
     float adcV = readAdcVoltage();
 
-    Serial.print("Torque: ");
-    Serial.print(torque, 3);
-    Serial.print(" | Calib: ");
-    Serial.print(calibration_factor);
-    Serial.print(" | ADC Pin Voltage: ");
-    Serial.println(adcV, 3);
+    String json = "{";
+    json += "\"torque\":";
+    json += String(torque, 3);
+    json += ",";
+    json += "\"adc\":";
+    json += String(adcV, 3);
+    json += "}";
+
+    /* === SERIAL === */
+    Serial.println(json);
+
+    /* === WEBSOCKET === */
+    webSocket.broadcastTXT(json);
   }
+  
+
 
 }
