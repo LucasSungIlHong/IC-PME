@@ -387,13 +387,24 @@ function calculateAverage(dataArray,numPoints){
 // ======================================================
 
 function generateSimulatedTorque(){
-    const elapsed = (Date.now()-startTime)/1000;
-    const baseTorque = 15 + 10*Math.sin(0.5*elapsed) + 0.2*Math.sin(2*elapsed);
-    return baseTorque * (10000/simul_calibration_factor);
+
+    const elapsed =
+        (Date.now()-startTime)/1000;
+
+    const baseTorque =
+        15 +
+        10*Math.sin(0.5*elapsed) +
+        0.2*Math.sin(2*elapsed);
+
+    return baseTorque *
+        (10000/simul_calibration_factor);
 }
 
 function generateSimulatedADC(){
-    const elapsed = (Date.now()-startTime)/1000;
+
+    const elapsed =
+        (Date.now()-startTime)/1000;
+
     return 2.0 + 0.24*Math.sin(0.05*elapsed);
 }
 

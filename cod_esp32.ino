@@ -213,7 +213,7 @@ void loop() {
     json += "}";
 
     /* === SERIAL === */
-    Serial.println(json);
+    //Serial.println(json);
 
     /* === WEBSOCKET === */
     webSocket.broadcastTXT(json);
