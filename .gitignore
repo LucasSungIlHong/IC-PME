@@ -1,0 +1,7 @@
+# Lista de arquivos para não incluir no repositório
+__pycache__/
+*.pyc
+*.pyo
+*.tex
+index_backup.html
+index_backup_2.html
